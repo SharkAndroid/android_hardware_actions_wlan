@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012 The Android Open Source Project
+# Copyright (C) 2013 Actions-Semi, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ifeq ($(BOARD_WIFI_VENDOR), realtek)
-	include $(call all-subdir-makefiles)
-endif	
+
+# Wlan driver for ATM702X
+ifeq ($(strip $(BOARD_USES_ACTIONS_WLAN)), true)
+	ifeq ($(BOARD_WIFI_VENDOR), realtek)
+		include $(call all-subdir-makefiles)
+	endif
+endif
