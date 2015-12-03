@@ -15,8 +15,6 @@
 
 
 # Wlan driver for ATM702X
-ifeq ($(strip $(BOARD_USES_ACTIONS_WLAN)), true)
-	ifeq ($(BOARD_WIFI_VENDOR), realtek)
-		include $(call all-subdir-makefiles)
-	endif
+ifeq ($(BOARD_HAVE_ACTIONS_WLAN), true)
+    include $(call all-subdir-makefiles)
 endif
