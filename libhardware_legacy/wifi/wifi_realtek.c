@@ -71,25 +71,25 @@ static char primary_iface[PROPERTY_VALUE_MAX];
 #define WIFI_DRIVER_MODULE_ARG          ""
 #endif
 #ifndef WIFI_FIRMWARE_LOADER
-#define WIFI_FIRMWARE_LOADER		""
+#define WIFI_FIRMWARE_LOADER        ""
 #endif
-#define WIFI_TEST_INTERFACE		"sta"
+#define WIFI_TEST_INTERFACE     "sta"
 
 #ifndef WIFI_DRIVER_FW_PATH_STA
-#define WIFI_DRIVER_FW_PATH_STA		NULL
+#define WIFI_DRIVER_FW_PATH_STA     NULL
 #endif
 #ifndef WIFI_DRIVER_FW_PATH_AP
-#define WIFI_DRIVER_FW_PATH_AP		NULL
+#define WIFI_DRIVER_FW_PATH_AP      NULL
 #endif
 #ifndef WIFI_DRIVER_FW_PATH_P2P
-#define WIFI_DRIVER_FW_PATH_P2P		NULL
+#define WIFI_DRIVER_FW_PATH_P2P     NULL
 #endif
 
 #ifndef WIFI_DRIVER_FW_PATH_PARAM
-#define WIFI_DRIVER_FW_PATH_PARAM	"/sys/module/wlan/parameters/fwpath"
+#define WIFI_DRIVER_FW_PATH_PARAM   "/sys/module/wlan/parameters/fwpath"
 #endif
 
-#define WIFI_DRIVER_LOADER_DELAY	1000000
+#define WIFI_DRIVER_LOADER_DELAY    1000000
 
 static const char IFACE_DIR[]           = "/data/system/wpa_supplicant";
 #ifdef WIFI_DRIVER_MODULE_PATH
@@ -129,13 +129,13 @@ static char supplicant_prop_name[PROPERTY_KEY_MAX];
 
 int get_wifi_ifname_from_prop(char *ifname)
 {
-	ifname[0] = '\0';
-	if (property_get("wifi.interface", ifname, WIFI_TEST_INTERFACE)
-		&& strcmp(ifname, WIFI_TEST_INTERFACE) != 0)
-		return 0;
-	
-	ALOGE("Can't get wifi ifname from property \"wifi.interface\"");
-	return -1;
+    ifname[0] = '\0';
+    if (property_get("wifi.interface", ifname, WIFI_TEST_INTERFACE)
+        && strcmp(ifname, WIFI_TEST_INTERFACE) != 0)
+        return 0;
+    
+    ALOGE("Can't get wifi ifname from property \"wifi.interface\"");
+    return -1;
 }
 
 int check_wifi_ifname_from_proc(char *buf, char *target)
@@ -143,92 +143,92 @@ int check_wifi_ifname_from_proc(char *buf, char *target)
 #define PROC_NET_DEV_PATH "/proc/net/dev"
 #define MAX_WIFI_IFACE_NUM 20
 
-	char linebuf[1024];
-	unsigned char wifi_ifcount = 0;
-	char wifi_ifaces[MAX_WIFI_IFACE_NUM][IFNAMSIZ+1];
-	int i, ret = -1;
-	int match = -1; /* if matched, this means the index*/
-	FILE *f = fopen(PROC_NET_DEV_PATH, "r");
+    char linebuf[1024];
+    unsigned char wifi_ifcount = 0;
+    char wifi_ifaces[MAX_WIFI_IFACE_NUM][IFNAMSIZ+1];
+    int i, ret = -1;
+    int match = -1; /* if matched, this means the index*/
+    FILE *f = fopen(PROC_NET_DEV_PATH, "r");
 
-	if(buf)
-		buf[0] = '\0';
-	
-	if (!f) {
-		ALOGE("Unable to read %s: %s\n", PROC_NET_DEV_PATH, strerror(errno));
-		goto exit;
-	}
+    if(buf)
+        buf[0] = '\0';
+    
+    if (!f) {
+        ALOGE("Unable to read %s: %s\n", PROC_NET_DEV_PATH, strerror(errno));
+        goto exit;
+    }
 
-	/* Get wifi interfaces form PROC_WIRELESS_PATH*/
-	memset(wifi_ifaces, 0, MAX_WIFI_IFACE_NUM * (IFNAMSIZ+1));
-	while(fgets(linebuf, sizeof(linebuf)-1, f)) {
-		
-		if (strchr(linebuf, ':')) {
-			char *dest = wifi_ifaces[wifi_ifcount];
-			char *p = linebuf;
-			
-			while(*p && isspace(*p))
-				++p;
-			while (*p && *p != ':') {
-				*dest++ = *p++;
-			}
-			*dest = '\0';
-			
-			ALOGD("%s: find %s\n", __func__, wifi_ifaces[wifi_ifcount]);
-			wifi_ifcount++;
-			if (wifi_ifcount>=MAX_WIFI_IFACE_NUM) {
-				ALOGD("%s: wifi_ifcount >= MAX_WIFI_IFACE_NUM(%u)\n", __func__,
-					MAX_WIFI_IFACE_NUM);
-				break;
-			}
-		}
-	}
-	fclose(f);
+    /* Get wifi interfaces form PROC_WIRELESS_PATH*/
+    memset(wifi_ifaces, 0, MAX_WIFI_IFACE_NUM * (IFNAMSIZ+1));
+    while(fgets(linebuf, sizeof(linebuf)-1, f)) {
+        
+        if (strchr(linebuf, ':')) {
+            char *dest = wifi_ifaces[wifi_ifcount];
+            char *p = linebuf;
+            
+            while(*p && isspace(*p))
+                ++p;
+            while (*p && *p != ':') {
+                *dest++ = *p++;
+            }
+            *dest = '\0';
+            
+            ALOGD("%s: find %s\n", __func__, wifi_ifaces[wifi_ifcount]);
+            wifi_ifcount++;
+            if (wifi_ifcount>=MAX_WIFI_IFACE_NUM) {
+                ALOGD("%s: wifi_ifcount >= MAX_WIFI_IFACE_NUM(%u)\n", __func__,
+                    MAX_WIFI_IFACE_NUM);
+                break;
+            }
+        }
+    }
+    fclose(f);
 
-	if (target) {
-		/* Try to find match */
-		for (i = 0;i < wifi_ifcount;i++) {		
-			if (strcmp(target, wifi_ifaces[i]) == 0) {
-				match = i;
-				break;
-			}
-		}
-	} else {
-		/* No target, use the first wifi_iface as target*/
-		match = 0;
-	}
+    if (target) {
+        /* Try to find match */
+        for (i = 0;i < wifi_ifcount;i++) {      
+            if (strcmp(target, wifi_ifaces[i]) == 0) {
+                match = i;
+                break;
+            }
+        }
+    } else {
+        /* No target, use the first wifi_iface as target*/
+        match = 0;
+    }
 
-	if(buf && match >= 0)
-		strncpy(buf, wifi_ifaces[match], IFNAMSIZ);
-		
-	if (match >= 0)
-		ret = 0;
+    if(buf && match >= 0)
+        strncpy(buf, wifi_ifaces[match], IFNAMSIZ);
+        
+    if (match >= 0)
+        ret = 0;
 exit:
-	return ret;
+    return ret;
 }
 
 int get_wifi_ifname_from_proc(char *ifname)
 {
-	return check_wifi_ifname_from_proc(ifname, NULL);
+    return check_wifi_ifname_from_proc(ifname, NULL);
 }
 
 char *wifi_ifname(int index)
 {
 #define WIFI_P2P_INTERFACE "p2p0"
 
-	char primary_if[IFNAMSIZ+1];
-	char second_if[IFNAMSIZ+1];
-	
-	if (index == PRIMARY) {
-		primary_iface[0] = '\0';
-		if (get_wifi_ifname_from_prop(primary_if) == 0 &&
-			check_wifi_ifname_from_proc(primary_iface, primary_if) == 0) {
-			return primary_iface;
-		}
-	} else if (index == SECONDARY) {
-		if (check_wifi_ifname_from_proc(NULL, WIFI_P2P_INTERFACE) == 0)
-			return WIFI_P2P_INTERFACE;
-	}
-	return NULL;
+    char primary_if[IFNAMSIZ+1];
+    char second_if[IFNAMSIZ+1];
+    
+    if (index == PRIMARY) {
+        primary_iface[0] = '\0';
+        if (get_wifi_ifname_from_prop(primary_if) == 0 &&
+            check_wifi_ifname_from_proc(primary_iface, primary_if) == 0) {
+            return primary_iface;
+        }
+    } else if (index == SECONDARY) {
+        if (check_wifi_ifname_from_proc(NULL, WIFI_P2P_INTERFACE) == 0)
+            return WIFI_P2P_INTERFACE;
+    }
+    return NULL;
 }
 
 static int is_primary_interface(const char *ifname)

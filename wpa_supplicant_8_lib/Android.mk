@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ifeq ($(strip $(BOARD_WIFI_VENDOR)), realtek)
+ifeq ($(BOARD_WIFI_VENDOR), realtek)
 
 LOCAL_PATH := $(call my-dir)
 
