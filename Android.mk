@@ -15,6 +15,6 @@
 
 
 # Wlan driver for ATM702X
-ifeq ($(BOARD_HAVE_ACTIONS_WLAN), true)
+ifeq ($(strip $(BOARD_HAVE_ACTIONS_WLAN)), true)
     include $(call all-subdir-makefiles)
 endif
