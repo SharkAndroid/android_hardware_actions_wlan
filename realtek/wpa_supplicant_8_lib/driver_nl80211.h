@@ -52,10 +52,10 @@
 #endif /* CONFIG_LIBNL20 */
 
 #ifndef IFF_LOWER_UP
-#define IFF_LOWER_UP 0x10000 /* driver signals L1 up */
+#define IFF_LOWER_UP   0x10000         /* driver signals L1 up         */
 #endif
 #ifndef IFF_DORMANT
-#define IFF_DORMANT 0x20000 /* driver signals dormant */
+#define IFF_DORMANT    0x20000         /* driver signals dormant       */
 #endif
 
 #ifndef IF_OPER_DORMANT

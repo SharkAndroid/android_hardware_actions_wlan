@@ -34,8 +34,8 @@
 #include "android_drv.h"
 #endif /* ANDROID */
 
-#define RSSI_CMD "RSSI"
-#define LINKSPEED_CMD "LINKSPEED"
+#define RSSI_CMD            "RSSI"
+#define LINKSPEED_CMD           "LINKSPEED"
 
 /**
  * wpa_driver_wext_set_scan_timeout - Set scan timeout to report scan completion
@@ -90,10 +90,9 @@ int wpa_driver_wext_combo_scan(void *priv, struct wpa_driver_scan_params *params
     /* Set list of SSIDs */
     bp = WEXT_CSCAN_HEADER_SIZE;
     os_memcpy(buf, WEXT_CSCAN_HEADER, bp);
-    for (i=0; i < params->num_ssids; i++) {
-        if ((bp + IW_ESSID_MAX_SIZE + 10) >= (int)sizeof(buf)) {
+    for(i=0; i < params->num_ssids; i++) {
+        if ((bp + IW_ESSID_MAX_SIZE + 10) >= (int)sizeof(buf))
             break;
-        }
         wpa_printf(MSG_DEBUG, "For Scan: %s", params->ssids[i].ssid);
         buf[bp++] = WEXT_CSCAN_SSID_SECTION;
         buf[bp++] = params->ssids[i].ssid_len;
@@ -121,11 +120,10 @@ int wpa_driver_wext_combo_scan(void *priv, struct wpa_driver_scan_params *params
     iwr.u.data.length = bp;
 
     if ((ret = ioctl(drv->ioctl_sock, SIOCSIWPRIV, &iwr)) < 0) {
-        if (!drv->bgscan_enabled) {
+        if (!drv->bgscan_enabled)
             wpa_printf(MSG_ERROR, "ioctl[SIOCSIWPRIV] (cscan): %d", ret);
-        } else {
-            ret = 0; /* Hide error in case of bg scan */
-        }
+        else
+            ret = 0;    /* Hide error in case of bg scan */
     }
     return ret;
 }
@@ -145,9 +143,8 @@ static int wpa_driver_wext_set_cscan_params(char *buf, size_t buf_len, char *cmd
         *pasv_ptr = '\0';
         pasv_ptr += 6;
         pasv_dwell = (u16)atoi(pasv_ptr);
-        if (pasv_dwell == 0) {
+        if (pasv_dwell == 0)
             pasv_dwell = WEXT_CSCAN_PASV_DWELL_TIME_DEF;
-        }
     }
     channel = (u8)atoi(cmd + 5);
 
@@ -160,16 +157,14 @@ static int wpa_driver_wext_set_cscan_params(char *buf, size_t buf_len, char *cmd
     if (channel != 0) {
         i = (pasv_dwell - 1) / WEXT_CSCAN_PASV_DWELL_TIME_DEF;
         for (; i > 0; i--) {
-            if ((size_t)(bp + 12) >= buf_len) {
+            if ((size_t)(bp + 12) >= buf_len)
                 break;
-            }
             buf[bp++] = WEXT_CSCAN_CHANNEL_SECTION;
             buf[bp++] = channel;
         }
     } else {
-        if (pasv_dwell > WEXT_CSCAN_PASV_DWELL_TIME_MAX) {
+        if (pasv_dwell > WEXT_CSCAN_PASV_DWELL_TIME_MAX)
             pasv_dwell = WEXT_CSCAN_PASV_DWELL_TIME_MAX;
-        }
     }
 
     /* Set passive dwell time (default is 250) */
@@ -197,11 +192,10 @@ static char *wpa_driver_get_country_code(int channels)
 {
     char *country = "US"; /* WEXT_NUMBER_SCAN_CHANNELS_FCC */
 
-    if (channels == WEXT_NUMBER_SCAN_CHANNELS_ETSI) {
+    if (channels == WEXT_NUMBER_SCAN_CHANNELS_ETSI)
         country = "EU";
-    } else if( channels == WEXT_NUMBER_SCAN_CHANNELS_MKK1) {
+    else if( channels == WEXT_NUMBER_SCAN_CHANNELS_MKK1)
         country = "JP";
-    }
     return country;
 }
 
@@ -308,18 +302,18 @@ int wpa_driver_wext_driver_cmd( void *priv, char *cmd, char *buf, size_t buf_len
             wpa_driver_get_country_code(no_of_chan));
     } else if (os_strcasecmp(cmd, "STOP") == 0) {
         linux_set_iface_flags(drv->ioctl_sock, drv->ifname, 0);
-    } else if (os_strcasecmp(cmd, "RELOAD") == 0) {
+    } else if( os_strcasecmp(cmd, "RELOAD") == 0 ) {
         wpa_printf(MSG_DEBUG,"Reload command");
         wpa_msg(drv->ctx, MSG_INFO, WPA_EVENT_DRIVER_STATE "HANGED");
         return ret;
-    } else if (os_strcasecmp(cmd, "BGSCAN-START") == 0) {
+    } else if( os_strcasecmp(cmd, "BGSCAN-START") == 0 ) {
         ret = wpa_driver_set_backgroundscan_params(priv);
         if (ret < 0) {
             return ret;
         }
         os_strncpy(cmd, "PNOFORCE 1", MAX_DRV_CMD_SIZE);
         drv->bgscan_enabled = 1;
-    } else if (os_strcasecmp(cmd, "BGSCAN-STOP") == 0) {
+    } else if( os_strcasecmp(cmd, "BGSCAN-STOP") == 0 ) {
         os_strncpy(cmd, "PNOFORCE 0", MAX_DRV_CMD_SIZE);
         drv->bgscan_enabled = 0;
     }
@@ -330,7 +324,7 @@ int wpa_driver_wext_driver_cmd( void *priv, char *cmd, char *buf, size_t buf_len
     iwr.u.data.pointer = buf;
     iwr.u.data.length = buf_len;
 
-    if (os_strncasecmp(cmd, "CSCAN", 5) == 0) {
+    if( os_strncasecmp(cmd, "CSCAN", 5) == 0 ) {
         if (!wpa_s->scanning && ((wpa_s->wpa_state <= WPA_SCANNING) ||
                     (wpa_s->wpa_state >= WPA_COMPLETED))) {
             iwr.u.data.length = wpa_driver_wext_set_cscan_params(buf, buf_len, cmd);
@@ -385,20 +379,17 @@ int wpa_driver_signal_poll(void *priv, struct wpa_signal_info *si)
     os_memset(si, 0, sizeof(*si));
     res = wpa_driver_wext_driver_cmd(priv, RSSI_CMD, buf, sizeof(buf));
     /* Answer: SSID rssi -Val */
-    if (res < 0) {
+    if (res < 0)
         return res;
-    }
     prssi = strcasestr(buf, RSSI_CMD);
-    if (!prssi) {
+    if (!prssi)
         return -1;
-    }
     si->current_signal = atoi(prssi + strlen(RSSI_CMD) + 1);
 
     res = wpa_driver_wext_driver_cmd(priv, LINKSPEED_CMD, buf, sizeof(buf));
     /* Answer: LinkSpeed Val */
-    if (res < 0) {
+    if (res < 0)
         return res;
-    }
     si->current_txrate = atoi(buf + strlen(LINKSPEED_CMD) + 1) * 1000;
 
     return 0;

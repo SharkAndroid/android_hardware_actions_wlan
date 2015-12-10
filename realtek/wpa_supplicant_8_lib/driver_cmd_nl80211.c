@@ -17,10 +17,10 @@
 #include "android_drv.h"
 #endif
 
-#define WPA_PS_ENABLED 0
-#define WPA_PS_DISABLED 1
+#define WPA_PS_ENABLED      0
+#define WPA_PS_DISABLED     1
 
-#define MAX_WPSP2PIE_CMD_SIZE 512
+#define MAX_WPSP2PIE_CMD_SIZE       512
 
 typedef struct android_wifi_priv_cmd {
     char *buf;
@@ -52,18 +52,16 @@ static int wpa_driver_set_power_save(void *priv, int state)
     enum nl80211_ps_state ps_state;
 
     msg = nlmsg_alloc();
-    if (!msg) {
+    if (!msg)
         return -1;
-    }
 
     genlmsg_put(msg, 0, 0, drv->global->nl80211_id, 0, 0,
             NL80211_CMD_SET_POWER_SAVE, 0);
 
-    if (state == WPA_PS_ENABLED) {
+    if (state == WPA_PS_ENABLED)
         ps_state = NL80211_PS_ENABLED;
-    } else {
+    else
         ps_state = NL80211_PS_DISABLED;
-    }
 
     NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, drv->ifindex);
     NLA_PUT_U32(msg, NL80211_ATTR_PS_STATE, ps_state);
@@ -86,9 +84,8 @@ static int get_power_mode_handler(struct nl_msg *msg, void *arg)
     nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
           genlmsg_attrlen(gnlh, 0), NULL);
 
-    if (!tb[NL80211_ATTR_PS_STATE]) {
+    if (!tb[NL80211_ATTR_PS_STATE])
         return NL_SKIP;
-    }
 
     if (state) {
         *state = (int)nla_get_u32(tb[NL80211_ATTR_PS_STATE]);
@@ -109,9 +106,8 @@ static int wpa_driver_get_power_save(void *priv, int *state)
     enum nl80211_ps_state ps_state;
 
     msg = nlmsg_alloc();
-    if (!msg) {
+    if (!msg)
         return -1;
-    }
 
     genlmsg_put(msg, 0, 0, drv->global->nl80211_id, 0, 0,
             NL80211_CMD_GET_POWER_SAVE, 0);
@@ -162,10 +158,9 @@ static int wpa_driver_set_backgroundscan_params(void *priv)
 
     while ((i < WEXT_PNO_AMOUNT) && (ssid_conf != NULL)) {
         /* Check that there is enough space needed for 1 more SSID, the other sections and null termination */
-        if ((bp + WEXT_PNO_SSID_HEADER_SIZE + MAX_SSID_LEN + WEXT_PNO_NONSSID_SECTIONS_SIZE + 1) >= (int)sizeof(buf)) {
+        if ((bp + WEXT_PNO_SSID_HEADER_SIZE + MAX_SSID_LEN + WEXT_PNO_NONSSID_SECTIONS_SIZE + 1) >= (int)sizeof(buf))
             break;
-        }
-        if ((!ssid_conf->disabled) && (ssid_conf->ssid_len <= MAX_SSID_LEN)) {
+        if ((!ssid_conf->disabled) && (ssid_conf->ssid_len <= MAX_SSID_LEN)){
             wpa_printf(MSG_DEBUG, "For PNO Scan: %s", ssid_conf->ssid);
             buf[bp++] = WEXT_PNO_SSID_SECTION;
             buf[bp++] = ssid_conf->ssid_len;
@@ -208,7 +203,8 @@ static int wpa_driver_set_backgroundscan_params(void *priv)
     return ret;
 }
 
-int wpa_driver_nl80211_driver_cmd(void *priv, char *cmd, char *buf, size_t buf_len)
+int wpa_driver_nl80211_driver_cmd(void *priv, char *cmd, char *buf,
+                  size_t buf_len )
 {
     struct i802_bss *bss = priv;
     struct wpa_driver_nl80211_data *drv = bss->drv;
@@ -236,11 +232,10 @@ int wpa_driver_nl80211_driver_cmd(void *priv, char *cmd, char *buf, size_t buf_l
 
         state = atoi(cmd + 10);
         ret = wpa_driver_set_power_save(priv, state);
-        if (ret < 0) {
+        if (ret < 0)
             wpa_driver_send_hang_msg(drv);
-        } else {
+        else
             drv_errors = 0;
-        }
     } else if (os_strncasecmp(cmd, "GETPOWER", 8) == 0) {
         int state = -1;
 
@@ -301,12 +296,11 @@ int wpa_driver_nl80211_driver_cmd(void *priv, char *cmd, char *buf, size_t buf_l
             if ((os_strcasecmp(cmd, "LINKSPEED") == 0) ||
                 (os_strcasecmp(cmd, "RSSI") == 0) ||
                 (os_strcasecmp(cmd, "GETBAND") == 0) ||
-                (os_strcasecmp(cmd, "P2P_GET_NOA") == 0)) {
+                (os_strcasecmp(cmd, "P2P_GET_NOA") == 0))
                 ret = strlen(buf);
-            } else if (os_strcasecmp(cmd, "COUNTRY") == 0) {
+            else if (os_strcasecmp(cmd, "COUNTRY") == 0)
                 wpa_supplicant_event(drv->ctx,
                     EVENT_CHANNEL_LIST_CHANGED, NULL);
-            }
             wpa_printf(MSG_DEBUG, "%s %s len = %d, %d", __func__, buf, ret, strlen(buf));
         }
     }
@@ -332,13 +326,11 @@ int wpa_driver_get_p2p_noa(void *priv, u8 *buf, size_t len)
     wpa_printf(MSG_DEBUG, "%s: Entry", __func__);
     os_memset(buf, 0, len);
     ret = wpa_driver_nl80211_driver_cmd(priv, cmd, rbuf, sizeof(rbuf));
-    if (ret <= 0) {
+    if (ret <= 0)
         return 0;
-    }
     ret >>= 1;
-    if (ret > (int)len) {
+    if (ret > (int)len)
         ret = (int)len;
-    }
     hexstr2bin(rbuf, buf, ret);
     return ret;
 }
@@ -353,8 +345,9 @@ int wpa_driver_set_p2p_ps(void *priv, int legacy_ps, int opp_ps, int ctwindow)
     return wpa_driver_nl80211_driver_cmd(priv, buf, buf, strlen(buf) + 1);
 }
 
-int wpa_driver_set_ap_wps_p2p_ie(void *priv, const struct wpabuf *beacon, const struct wpabuf *proberesp,
-                const struct wpabuf *assocresp)
+int wpa_driver_set_ap_wps_p2p_ie(void *priv, const struct wpabuf *beacon,
+                 const struct wpabuf *proberesp,
+                 const struct wpabuf *assocresp)
 {
     char *buf;
     struct wpabuf *ap_wps_p2p_ie = NULL;
@@ -375,8 +368,8 @@ int wpa_driver_set_ap_wps_p2p_ie(void *priv, const struct wpabuf *beacon, const 
     wpa_printf(MSG_DEBUG, "%s: Entry", __func__);
     for (i = 0; cmd_arr[i].cmd != -1; i++) {
         #if 0
-        if (cmd_arr[i].src) {
-        wpa_printf(MSG_INFO, "cmd_arr[%d].src->size:%d\n"
+        if(cmd_arr[i].src){
+        wpa_printf(MSG_INFO,    "cmd_arr[%d].src->size:%d\n"
                     "cmd_arr[%d].src->used:%d\n"
                     "cmd_arr[%d].src->ext_data:%s\n"
                     , i, cmd_arr[i].src->size
@@ -390,7 +383,7 @@ int wpa_driver_set_ap_wps_p2p_ie(void *priv, const struct wpabuf *beacon, const 
             wpabuf_dup(cmd_arr[i].src) : NULL;
         if (ap_wps_p2p_ie) {
             buf = os_zalloc(strlen(_cmd) + 3 + wpabuf_len(ap_wps_p2p_ie));
-            if (buf) {
+            if(buf) {
                 pbuf = buf;
                 pbuf += sprintf(pbuf, "%s %d", _cmd, cmd_arr[i].cmd);
                 *pbuf++ = '\0';
@@ -406,9 +399,8 @@ int wpa_driver_set_ap_wps_p2p_ie(void *priv, const struct wpabuf *beacon, const 
             }
 
             wpabuf_free(ap_wps_p2p_ie);
-            if (ret < 0) {
+            if (ret < 0)
                 break;
-            }
         }
     }
 
