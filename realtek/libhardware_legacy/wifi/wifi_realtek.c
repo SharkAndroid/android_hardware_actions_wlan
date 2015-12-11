@@ -1080,3 +1080,8 @@ int wifi_change_fw_path(const char *fwpath)
 #endif
     return ret;
 }
+
+int wifi_set_mode(int mode) {
+    wifi_mode = mode;
+    return 0;
+}
